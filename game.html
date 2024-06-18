@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Змейка с телепортами</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border: 1px solid white;
+            display: grid;
+            grid-template-rows: repeat(20, 1fr);
+            grid-template-columns: repeat(20, 1fr);
+            background-color: green; /* Цвет зоны игры */
+            margin-bottom: 20px;
+        }
+
+        .snake {
+            background-color: darkblue; /* Цвет змеи */
+            border-radius: 50%;
+        }
+
+        .food {
+            background-image: url('apple.png'); /* Изображение еды */
+            background-size: cover;
+            border-radius: 50%;
+        }
+
+        .teleport {
+            background-color: black; /* Цвет телепорта */
+            border-radius: 50%;
+        }
+
+        #game-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        #pause-btn {
+            margin-top: 10px;
+        }
+
+        #continue-btn {
+            margin-top: 10px;
+            display: none;
+        }
+
+        #return-btn {
+            margin-top: 20px;
+        }
+
+        #score {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+    </div>
+
+    <div id="game-controls">
+        <div class="control-row">
+            <button class="control-btn" onclick="move('up')">↑</button>
+        </div>
+        <div class="control-row">
+            <button class="control-btn" onclick="move('left')">←</button>
+            <button id="pause-btn" class="control-btn" onclick="togglePause()">Пауза</button>
+            <button class="control-btn" onclick="move('right')">→</button>
+        </div>
+        <div class="control-row">
+            <button class="control-btn" onclick="move('down')">↓</button>
+        </div>
+        <button id="return-btn" class="control-btn" onclick="returnToMainMenu()">Главное меню</button>
+        <button id="continue-btn" class="control-btn" onclick="togglePause()" style="display: none;">Продолжить</button>
+        <div id="score">Счет: <span id="score-value">0</span></div>
+    </div>
+
+    <script>
+        let snake = [{x: 10, y: 10}];
+        let food = {x: 5, y: 5};
+        let teleport = {x: 0, y: 0};
+        let dx = 0;
+        let dy = 0;
+        let interval;
+        let score = 0;
+        let balance = 0; // Здесь должен быть баланс из главного меню
+
+        const gameGrid = document.getElementById('game');
+
+        function startGame() {
+            resetGame();
+            interval = setInterval(updateGame, 100);
+        }
+
+        function resetGame() {
+            snake = [{x: 10, y: 10}];
+            dx = 0;
+            dy = 0;
+            placeFood();
+            generateTeleport();
+            score = 0;
+            updateScore();
+            gameGrid.innerHTML = ''; // Очистка предыдущих элементов на поле игры
+        }
+
+        function updateGame() {
+            clearCanvas();
+            moveSnake();
+            drawSnake();
+            drawFood();
+            drawTeleport();
+            checkCollision();
+        }
+
+        function clearCanvas() {
+            gameGrid.innerHTML = ''; // Очистка игровой сетки
+        }
+
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            snake.unshift(head);
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                balance += 10; // Увеличение баланса при съедании еды
+                updateScore();
+                placeFood();
+            } else {
+                snake.pop(); // Удаление последнего сегмента змеи
+            }
+        }
+
+        function drawSnake() {
+            snake.forEach(segment => {
+                const snakeElement = document.createElement('div');
+                snakeElement.style.gridRowStart = segment.y;
+                snakeElement.style.gridColumnStart = segment.x;
+                snakeElement.classList.add('snake');
+                gameGrid.appendChild(snakeElement);
+            });
+        }
+
+        function drawFood() {
+            const foodElement = document.createElement('div');
+            foodElement.style.gridRowStart = food.y;
+            foodElement.style.gridColumnStart = food.x;
+            foodElement.classList.add('food');
+            gameGrid.appendChild(foodElement);
+        }
+
+        function placeFood() {
+            food.x = Math.floor(Math.random() * 20) + 1;
+            food.y = Math.floor(Math.random() * 20) + 1;
+        }
+
+        function generateTeleport() {
+            teleport.x = Math.floor(Math.random() * 18) + 2;
+            teleport.y = Math.floor(Math.random() * 18) + 2;
+        }
+
+        function drawTeleport() {
+            const teleportElement = document.createElement('div');
+            teleportElement.style.gridRowStart = teleport.y;
+            teleportElement.style.gridColumnStart = teleport.x;
+            teleportElement.classList.add('teleport');
+            gameGrid.appendChild(teleportElement);
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+
+            // Проверка столкновения со стенами (телепортами)
+            if (head.x <= 0) head.x = 20;
+            if (head.x > 20) head.x = 1;
+            if (head.y <= 0) head.y = 20;
+            if (head.y > 20) head.y = 1;
+
+            // Проверка столкновения с телепортом
+            if (head.x === teleport.x && head.y === teleport.y) {
+                let newX = Math.floor(Math.random() * 20) + 1;
+                let newY = Math.floor(Math.random() * 20) + 1;
+                snake = [{x: newX, y: newY}];
+            }
+
+            // Проверка столкновения с собой
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver();
+                }
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score-value').textContent = score;
+            // Сохранение баланса в localStorage, чтобы он был доступен в главном меню
+            localStorage.setItem('balance', balance);
+        }
+
+        function togglePause() {
+            if (interval) {
+                clearInterval(interval);
+                interval = null;
+                document.getElementById('pause-btn').style.display = 'none';
+                document.getElementById('continue-btn').style.display = 'inline-block';
+            } else {
+                interval = setInterval(updateGame, 100);
+                document.getElementById('pause-btn').style.display = 'inline-block';
+                document.getElementById('continue-btn').style.display = 'none';
+            }
+        }
+
+        function endGame() {
+            clearInterval(interval);
+            // Закончить игру и вернуться в главное меню
+            localStorage.setItem('balance', balance); // Сохранение баланса перед возвратом
+            window.location.href = 'index.html';
+        }
+
+        function returnToMainMenu() {
+            clearInterval(interval);
+            // Вернуться в главное меню без сохранения текущего баланса
+            window.location.href = 'index.html';
+        }
+
+        // Управление змеей с помощью клавиш
+        function move(direction) {
+            switch (direction) {
+                case 'up':
+                    if (dy === 0) {
+                        dx = 0;
+                        dy = -1;
+                    }
+                    break;
+                case 'down':
+                    if (dy === 0) {
+                        dx = 0;
+                        dy = 1;
+                    }
+                    break;
+                case 'left':
+                    if (dx === 0) {
+                        dx = -1;
+                        dy = 0;
+                    }
+                    break;
+                case 'right':
+                    if (dx === 0) {
+                        dx = 1;
+                        dy = 0;
+                    }
+                    break;
+            }
+        }
+
+        // Инициализация игры при загрузке страницы
+        window.onload = function() {
+            startGame();
+            // Восстановление баланса из localStorage, если он там сохранен
+            const savedBalance = localStorage.getItem('balance');
+            if (savedBalance) {
+                balance = parseInt(savedBalance);
+            }
+        };
+    </script>
+</body>
+</html>

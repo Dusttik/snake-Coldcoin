@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вознаграждения</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black;
+            color: white;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .balance {
+            margin-bottom: 20px;
+        }
+        .timer {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Вознаграждения</h1>
+        <div class="balance">Текущий баланс: <span id="balance-value">0</span> COLDcoin</div>
+        <p>Ежедневные бонусы:</p>
+        <ul id="daily-rewards">
+            <li>День 1: 1000 COLDcoin</li>
+            <li>День 2: 3000 COLDcoin</li>
+            <li>День 3: 10000 COLDcoin</li>
+            <li>День 4: 25000 COLDcoin</li>
+            <li>День 5: 50000 COLDcoin</li>
+            <li>День 6: 100000 COLDcoin</li>
+            <li>День 7: 100000 COLDcoin</li>
+        </ul>
+        <button onclick="claimReward()">Собрать бонус</button>
+        <button onclick="backToMainMenu()">Назад</button>
+        <div class="timer" id="timer">До следующего вознаграждения: <span id="countdown"></span></div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let claimedRewards = [1000, 3000, 10000, 25000, 50000, 100000, 100000]; // Ежедневные вознаграждения
+        let currentDay = 1; // Текущий день, который можно собрать
+        let nextRewardTime = 0; // Время до следующего вознаграждения (в миллисекундах)
+        const balanceValue = document.getElementById('balance-value');
+        const countdownElement = document.getElementById('countdown');
+        
+        // Получение текущего времени в миллисекундах
+        function getCurrentTime() {
+            return new Date().getTime();
+        }
+
+        function initializePage() {
+            updateBalance();
+            updateDailyRewards();
+            updateNextRewardTime();
+            updateTimer();
+        }
+
+        function updateBalance() {
+            balanceValue.textContent = localStorage.getItem('balance') || 0;
+        }
+
+        function updateDailyRewards() {
+            const dailyRewardsList = document.getElementById('daily-rewards');
+            for (let i = 0; i < claimedRewards.length; i++) {
+                const listItem = dailyRewardsList.children[i];
+                listItem.textContent = `День ${i + 1}: ${claimedRewards[i]} COLDcoin`;
+            }
+        }
+
+        function updateNextRewardTime() {
+            const lastClaimTime = localStorage.getItem('lastClaimTime');
+            if (lastClaimTime) {
+                nextRewardTime = parseInt(lastClaimTime, 10) + (24 * 60 * 60 * 1000); // 24 часа в миллисекундах
+            } else {
+                nextRewardTime = getCurrentTime(); // Если не было предыдущего времени, устанавливаем текущее время
+            }
+        }
+
+        function updateTimer() {
+            setInterval(() => {
+                const currentTime = getCurrentTime();
+                const timeLeft = nextRewardTime - currentTime;
+                if (timeLeft > 0) {
+                    const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const secondsLeft = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    countdownElement.textContent = `${hoursLeft}ч ${minutesLeft}м ${secondsLeft}с`;
+                } else {
+                    countdownElement.textContent = 'Готово к сбору';
+                }
+            }, 1000);
+        }
+
+        function claimReward() {
+            if (nextRewardTime <= getCurrentTime()) {
+                const reward = claimedRewards[currentDay - 1];
+                balance += reward;
+                localStorage.setItem('balance', balance);
+                localStorage.setItem('lastClaimTime', getCurrentTime().toString());
+                updateBalance();
+                alert(`Вы успешно собрали ${reward} COLDcoin!`);
+                currentDay = currentDay === 7 ? 1 : currentDay + 1;
+                updateDailyRewards();
+                updateNextRewardTime();
+            } else {
+                alert('Вы уже собрали сегодняшнее вознаграждение. Подождите до следующего.');
+            }
+        }
+
+        function backToMainMenu() {
+            window.location.href = 'index.html'; // Переход обратно в главное меню
+        }
+
+        initializePage();
+    </script>
+</body>
+</html>

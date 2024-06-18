@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прокачать змею</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black;
+            color: white;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .upgrade-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .back-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Прокачать змею</h1>
+        <p>Улучшение змеи удваивает количество COLDcoin, которые вы получаете за съеденную еду.</p>
+        <div class="balance">Текущий баланс: <span id="balance-value">0</span> COLDcoin</div>
+        <button class="upgrade-btn" onclick="upgradeSnake()">Прокачать за 1000 COLDcoin</button>
+        <button class="back-btn" onclick="backToMainMenu()">Назад</button>
+    </div>
+
+    <script>
+        let balance = 0;
+        const upgradeCost = 1000; // Стоимость первого улучшения
+        const upgradeMultiplier = 2; // Множитель улучшения
+        const balanceValue = document.getElementById('balance-value');
+
+        function updateBalance() {
+            balance = localStorage.getItem('balance') || 0;
+            balanceValue.textContent = balance;
+        }
+
+        function upgradeSnake() {
+            if (balance >= upgradeCost) {
+                balance -= upgradeCost;
+                upgradeCost *= 2; // Удваиваем стоимость для следующего улучшения
+                localStorage.setItem('balance', balance);
+                balanceValue.textContent = balance;
+                alert(`Змея успешно прокачана! Теперь каждый заработанный COLDcoin удваивается.`);
+            } else {
+                alert(`Недостаточно COLDcoin для прокачки змеи. Требуется еще ${upgradeCost - balance} COLDcoin.`);
+            }
+        }
+
+        function backToMainMenu() {
+            window.location.href = 'index.html'; // Переход обратно в главное меню
+        }
+
+        updateBalance();
+    </script>
+</body>
+</html>

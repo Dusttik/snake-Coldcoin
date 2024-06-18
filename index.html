@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главное меню</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black;
+            color: white;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 {
+            margin-top: 50px; /* Отступ над названием */
+        }
+        .btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #balance {
+            font-size: 18px;
+            margin-top: 20px; /* Отступ над кнопкой "Начать игру" */
+        }
+    </style>
+</head>
+<body>
+    <h1>Главное меню</h1>
+    <div id="balance">Баланс: <span id="balance-value">0</span> COLDcoin</div>
+    <button class="btn" onclick="startGame()">Начать игру</button>
+    <button class="btn" onclick="upgradeSnake()">Прокачать змею</button>
+    <button class="btn" onclick="showRewards()">Вознаграждения</button>
+
+    <script>
+        // Загрузка баланса из localStorage при загрузке страницы
+        window.onload = function() {
+            let balance = localStorage.getItem('balance');
+            if (!balance) {
+                balance = 0;
+            }
+            document.getElementById('balance-value').textContent = balance;
+        };
+
+        function startGame() {
+            window.location.href = 'game.html';
+        }
+
+        function upgradeSnake() {
+            window.location.href = 'upgrade.html';
+        }
+
+        function showRewards() {
+            window.location.href = 'rewards.html';
+        }
+    </script>
+</body>
+</html>
